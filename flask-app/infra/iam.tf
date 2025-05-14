@@ -164,15 +164,14 @@ resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
 
 resource "aws_s3_bucket" "terraform_state_bucket" {
   bucket = "terraform-state-bucketxyz123"
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_acl" "bucket_acl" {
+  bucket = aws_s3_bucket.terraform_state_bucket.id
   acl    = "private"
 }
 
-resource "aws_s3_bucket_object" "terraform_state_file" {
-  bucket = aws_s3_bucket.terraform_state_bucket.bucket
-  key    = "terraform/terraform.tfstate"
-  source = "path/to/local/terraform.tfstate"
-  acl    = "private"
-}
 
 resource "aws_s3_bucket_object_acl" "allow_terraform_state_access" {
   bucket = aws_s3_bucket.terraform_state_bucket.bucket
