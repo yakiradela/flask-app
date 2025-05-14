@@ -22,7 +22,43 @@ resource "aws_iam_role_policy_attachment" "eks_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
-# ========== IAM POLICY FOR USER yakir ==========
+# ========== IAM POLICY FOR S3 STATE ACCESS ==========
+
+resource "aws_iam_policy" "terraform_s3_access_policy" {
+  name        = "terraform-s3-access-policy"
+  description = "Policy to allow Terraform access to S3 state files"
+  policy      = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ],
+        Resource = [
+          "arn:aws:s3:::terraform-state-bucketxyz123",
+          "arn:aws:s3:::terraform-state-bucketxyz123/*"
+        ]
+      }
+    ]
+  })
+}
+
+# ========== IAM USER POLICY ATTACHMENT FOR S3 ACCESS ==========
+
+resource "aws_iam_user" "yakir" {
+  name = "yakir"
+}
+
+resource "aws_iam_user_policy_attachment" "terraform_s3_policy_attachment" {
+  user       = aws_iam_user.yakir.name
+  policy_arn = aws_iam_policy.terraform_s3_access_policy.arn
+}
+
+# ========== IAM POLICY FOR ADMIN USER ACCESS ==========
 
 resource "aws_iam_policy" "yakir_admin_policy" {
   name        = "yakir-admin-policy"
@@ -68,18 +104,6 @@ resource "aws_iam_policy" "yakir_admin_policy" {
       {
         Effect = "Allow",
         Action = [
-          "s3:ListBucket",
-          "s3:GetBucketVersioning",
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject",
-          "s3:CreateBucket"
-        ],
-        Resource = "*"
-      },
-      {
-        Effect = "Allow",
-        Action = [
           "iam:GetUser",
           "iam:GetRole",
           "iam:CreateRole",
@@ -98,49 +122,49 @@ resource "aws_iam_policy" "yakir_admin_policy" {
 }
 
 resource "aws_iam_user_policy_attachment" "attach_yakir_admin_policy" {
-  user       = "yakir"
+  user       = aws_iam_user.yakir.name
   policy_arn = aws_iam_policy.yakir_admin_policy.arn
 }
 
-# ========== IAM POLICY FOR S3 STATE ACCESS ==========
+# ========== IAM ROLE FOR EKS NODE GROUP ==========
 
-resource "aws_iam_policy" "terraform_s3_access_policy" {
-  name        = "terraform-s3-access-policy"
-  description = "Policy to allow Terraform access to S3 state files"
-  policy      = jsonencode({
-    Version = "2012-10-17",
+resource "aws_iam_role" "node_group_role" {
+  name = "eks-node-group-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "AllowS3ListBucketForTerraform",
-        Effect = "Allow",
-        Action = [
-          "s3:ListBucket"
-        ],
-        Resource = "arn:aws:s3:::terraform-state-bucketxyz123"
-      },
-      {
-        Sid    = "AllowS3ObjectAccessForTerraform",
-        Effect = "Allow",
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject"
-        ],
-        Resource = "arn:aws:s3:::terraform-state-bucketxyz123/*"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
       }
     ]
   })
 }
 
-resource "aws_iam_user_policy_attachment" "terraform_s3_policy_attachment" {
-  user       = "yakir"
-  policy_arn = aws_iam_policy.terraform_s3_access_policy.arn
+resource "aws_iam_role_policy_attachment" "node_group_worker_node_policy" {
+  role       = aws_iam_role.node_group_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "node_group_cni_policy" {
+  role       = aws_iam_role.node_group_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+}
+
+resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
+  role       = aws_iam_role.node_group_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
 # ========== S3 BUCKET FOR STATE FILES ==========
 
 resource "aws_s3_bucket" "terraform_state_bucket" {
   bucket = "terraform-state-bucketxyz123"
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_object" "terraform_state_file" {
@@ -174,43 +198,11 @@ resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
           "arn:aws:s3:::terraform-state-bucketxyz123/*"
         ],
         Principal = {
-          AWS = "arn:aws:iam::ACCOUNT_ID:user/yakir"
+          AWS = "arn:aws:iam::ACCOUNT_ID:user/yakir"  # החלף ב-ID של המשתמש שלך
         }
       }
     ]
   })
 }
 
-# ========== EKS CLUSTER AND NODE GROUPS ==========
 
-resource "aws_iam_role" "node_group_role" {
-  name = "eks-node-group-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_worker_node_policy" {
-  role       = aws_iam_role.node_group_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_cni_policy" {
-  role       = aws_iam_role.node_group_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
-  role       = aws_iam_role.node_group_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
