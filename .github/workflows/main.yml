@@ -37,7 +37,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform init, plan, apply for backend
-        working-directory: ./infra
+        working-directory: ./flask-app/infra
         run: |
           terraform init
           terraform plan
@@ -64,7 +64,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform init, plan, apply for infra
-        working-directory: ./infra/main
+        working-directory: ./flask-app/infra
         run: |
           terraform init \
             -backend-config="bucket=${{ env.S3_BUCKET }}" \
@@ -104,7 +104,7 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          helm upgrade --install $DEPLOYMENT_NAME ./helm/flask-app \
+          helm upgrade --install $DEPLOYMENT_NAME ./flask-app/helm/flask-app \
             --set image.repository=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY \
             --set image.tag=$IMAGE_TAG \
             --set service.type=LoadBalancer
