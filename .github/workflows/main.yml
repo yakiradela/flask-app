@@ -34,7 +34,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform init, plan, apply for backend
-        working-directory: infra/bucket.tf
+        working-directory: infra/
         run: |
           terraform init
           terraform plan
