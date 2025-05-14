@@ -1,17 +1,9 @@
-resource "aws_s3_bucket" "terraform_state" {
-  bucket        = "terraform-state-bucketxyz123"
-  force_destroy = true
-
-  tags = {
-    Name        = "TerraformStateBucket"
-    Environment = "Dev"
+terraform {
+  backend "s3" {
+    bucket = "terraform-state-bucketxyz123"    # שם הבקט שיצרת
+    key    = "terraform/terraform.tfstate"      # המיקום של ה-state בתוך ה-bucket
+    region = "us-east-2"                        # האזור שבו נמצא ה-S3 bucket
+    encrypt = true                              # אם אתה רוצה להצפין את הקובץ ב-S3
   }
 }
 
-resource "aws_s3_bucket_versioning" "terraform_state_versioning" {
-  bucket = aws_s3_bucket.terraform_state.id
-
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
