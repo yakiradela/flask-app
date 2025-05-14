@@ -111,12 +111,12 @@ resource "aws_iam_policy" "terraform_s3_access_policy" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Allow"
+        Effect   = "Allow",
         Action   = [
           "s3:ListBucket",
           "s3:GetObject",
           "s3:PutObject"
-        ]
+        ],
         Resource = [
           "arn:aws:s3:::terraform-state-bucketxyz123",
           "arn:aws:s3:::terraform-state-bucketxyz123/*"
@@ -180,7 +180,7 @@ resource "aws_iam_role" "node_group_role" {
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [ 
+    Statement = [
       {
         Effect = "Allow"
         Principal = {
@@ -206,60 +206,4 @@ resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
   role       = aws_iam_role.node_group_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
-
-resource "aws_eks_cluster" "main" {
-  name     = "devops-cluster"
-  role_arn = aws_iam_role.eks_role.arn
-
-  vpc_config {
-    subnet_ids         = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
-    security_group_ids = [aws_security_group.eks_cluster_sg.id]
-  }
-
-  depends_on = [aws_iam_role_policy_attachment.eks_policy]
-}
-
-resource "aws_eks_node_group" "private_nodes" {
-  cluster_name    = aws_eks_cluster.main.name
-  node_group_name = "private-node-group"
-  node_role_arn   = aws_iam_role.node_group_role.arn
-  subnet_ids      = aws_subnet.private[*].id
-
-  scaling_config {
-    desired_size = var.node_group_desired_size
-    max_size     = 3
-    min_size     = 1
-  }
-
-  instance_types = [var.node_group_instance_type]
-}
-
-resource "aws_eks_node_group" "public_nodes" {
-  cluster_name    = aws_eks_cluster.main.name
-  node_group_name = "public-node-group"
-  node_role_arn   = aws_iam_role.node_group_role.arn
-  subnet_ids      = aws_subnet.public[*].id
-
-  scaling_config {
-    desired_size = var.node_group_desired_size
-    max_size     = 3
-    min_size     = 1
-  }
-
-  instance_types = [var.node_group_instance_type]
-}
-{
-  "Effect": "Allow",
-  "Action": [
-    "s3:ListBucket",
-    "s3:GetObject",
-    "s3:PutObject",
-    "s3:DeleteObject"
-  ],
-  "Resource": [
-    "arn:aws:s3:::terraform-state-bucketxyz123",
-    "arn:aws:s3:::terraform-state-bucketxyz123/*"
-  ]
-}
-
 
