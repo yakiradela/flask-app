@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug - List repo contents
+        run: ls -R
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -34,7 +37,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform init, plan, apply for backend
-        working-directory: infra/
+        working-directory: ./infra
         run: |
           terraform init
           terraform plan
@@ -61,7 +64,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform init, plan, apply for infra
-        working-directory: infra/main
+        working-directory: ./infra/main
         run: |
           terraform init \
             -backend-config="bucket=${{ env.S3_BUCKET }}" \
@@ -105,4 +108,3 @@ jobs:
             --set image.repository=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY \
             --set image.tag=$IMAGE_TAG \
             --set service.type=LoadBalancer
-
