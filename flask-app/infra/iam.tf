@@ -146,7 +146,7 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
 resource "aws_s3_bucket_object" "terraform_state_file" {
   bucket = aws_s3_bucket.terraform_state_bucket.bucket
   key    = "terraform/terraform.tfstate"
-  source = "path/to/local/terraform.tfstate"  # שים כאן את הנתיב המקומי של ה־terraform.tfstate
+  source = "path/to/local/terraform.tfstate"
   acl    = "private"
 }
 
@@ -155,8 +155,6 @@ resource "aws_s3_bucket_object_acl" "allow_terraform_state_access" {
   key    = "terraform/terraform.tfstate"
   acl    = "private"
 }
-
-# ========== S3 BUCKET POLICY FOR STATE FILES ==========
 
 resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
   bucket = aws_s3_bucket.terraform_state_bucket.bucket
