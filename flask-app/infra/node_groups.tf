@@ -121,3 +121,21 @@ resource "aws_iam_role_policy_attachment" "attach_github_ci_policy" {
   role       = aws_iam_role.github_actions_ci.name
   policy_arn = aws_iam_policy.github_actions_ci_policy.arn
 }
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+
