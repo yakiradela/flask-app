@@ -44,7 +44,7 @@ resource "aws_eks_node_group" "private_nodes" {
   instance_types = [var.node_group_instance_type]
 }
 
-# 🌐 Node Group בפאבליק סאבנט
+
 resource "aws_eks_node_group" "public_nodes" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "public-node-group"
@@ -60,3 +60,64 @@ resource "aws_eks_node_group" "public_nodes" {
   instance_types = [var.node_group_instance_type]
 }
 
+resource "aws_iam_role" "github_actions_ci" {
+  name = "github-actions-ci-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "ec2.amazonaws.com" 
+      },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_policy" "github_actions_ci_policy" {
+  name        = "github-actions-ci-policy"
+  description = "Policy for GitHub Actions to push to ECR and deploy to EKS"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:PutImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "eks:DescribeCluster",
+          "eks:DescribeUpdate",
+          "eks:UpdateClusterConfig",
+          "eks:ListNodegroups",
+          "eks:DescribeNodegroup",
+          "eks:ListClusters"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "ssm:GetParameter"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_github_ci_policy" {
+  role       = aws_iam_role.github_actions_ci.name
+  policy_arn = aws_iam_policy.github_actions_ci_policy.arn
+}
