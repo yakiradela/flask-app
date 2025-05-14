@@ -111,16 +111,22 @@ resource "aws_iam_policy" "terraform_s3_access_policy" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Allow",
-        Action   = [
-          "s3:ListBucket",
-          "s3:GetObject",
-          "s3:PutObject"
+        Sid    = "AllowS3ListBucketForTerraform",
+        Effect = "Allow",
+        Action = [
+          "s3:ListBucket"
         ],
-        Resource = [
-          "arn:aws:s3:::terraform-state-bucketxyz123",
-          "arn:aws:s3:::terraform-state-bucketxyz123/*"
-        ]
+        Resource = "arn:aws:s3:::terraform-state-bucketxyz123"
+      },
+      {
+        Sid    = "AllowS3ObjectAccessForTerraform",
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ],
+        Resource = "arn:aws:s3:::terraform-state-bucketxyz123/*"
       }
     ]
   })
@@ -140,7 +146,7 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
 resource "aws_s3_bucket_object" "terraform_state_file" {
   bucket = aws_s3_bucket.terraform_state_bucket.bucket
   key    = "terraform/terraform.tfstate"
-  source = "path/to/local/terraform.tfstate"
+  source = "path/to/local/terraform.tfstate"  # שים כאן את הנתיב המקומי של ה־terraform.tfstate
   acl    = "private"
 }
 
@@ -149,6 +155,8 @@ resource "aws_s3_bucket_object_acl" "allow_terraform_state_access" {
   key    = "terraform/terraform.tfstate"
   acl    = "private"
 }
+
+# ========== S3 BUCKET POLICY FOR STATE FILES ==========
 
 resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
   bucket = aws_s3_bucket.terraform_state_bucket.bucket
@@ -167,7 +175,9 @@ resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
           "arn:aws:s3:::terraform-state-bucketxyz123",
           "arn:aws:s3:::terraform-state-bucketxyz123/*"
         ],
-        Principal = "*"
+        Principal = {
+          AWS = "arn:aws:iam::ACCOUNT_ID:user/yakir"
+        }
       }
     ]
   })
@@ -206,4 +216,3 @@ resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
   role       = aws_iam_role.node_group_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
-
