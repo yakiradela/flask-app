@@ -75,3 +75,41 @@ resource "aws_iam_user_policy_attachment" "attach_yakir_admin_policy" {
   user       = "yakir"
   policy_arn = aws_iam_policy.yakir_admin_policy.arn
 }
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::terraform-state-bucketxyz123",
+                "arn:aws:s3:::terraform-state-bucketxyz123/*"
+            ]
+        }
+    ]
+}
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::terraform-state-bucketxyz123",
+                "arn:aws:s3:::terraform-state-bucketxyz123/*"
+            ],
+            "Principal": "*"
+        }
+    ]
+}
+
+
