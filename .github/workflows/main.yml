@@ -1,6 +1,6 @@
 name: Build and Deploy Flask App to EKS
 
-on:
+on: 
   push:
     branches: [ main ]
 
