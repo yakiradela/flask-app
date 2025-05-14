@@ -248,5 +248,18 @@ resource "aws_eks_node_group" "public_nodes" {
 
   instance_types = [var.node_group_instance_type]
 }
+{
+  "Effect": "Allow",
+  "Action": [
+    "s3:ListBucket",
+    "s3:GetObject",
+    "s3:PutObject",
+    "s3:DeleteObject"
+  ],
+  "Resource": [
+    "arn:aws:s3:::terraform-state-bucketxyz123",
+    "arn:aws:s3:::terraform-state-bucketxyz123/*"
+  ]
+}
 
 
