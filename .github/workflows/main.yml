@@ -1,4 +1,4 @@
-name: Build and Deploy Flask App to EKS
+name: Build and Deploy Flask App to EKS 
 
 on:
   push:
