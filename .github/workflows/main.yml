@@ -15,14 +15,11 @@ env:
 
 jobs:
   terraform-backend:
-    name: Setup Terraform Backend (S3)
+    name: Stage 1 – Create Backend (Local)
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Debug - List repo contents
-        run: ls -R
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -36,15 +33,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform init, plan, apply for backend
+      - name: Temporarily disable S3 backend config
+        run: |
+          mv ./flask-app/infra/s3_backend.tf ./flask-app/infra/s3_backend.tf.disabled || true
+
+      - name: Terraform init & apply (local backend)
         working-directory: ./flask-app/infra
         run: |
           terraform init
-          terraform plan
           terraform apply -auto-approve
 
   terraform-main:
-    name: Deploy Full Infrastructure
+    name: Stage 2 – Deploy Infra with S3 backend
     runs-on: ubuntu-latest
     needs: terraform-backend
 
@@ -63,7 +63,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform init, plan, apply for infra
+      - name: Restore S3 backend config
+        run: |
+          mv ./flask-app/infra/s3_backend.tf.disabled ./flask-app/infra/s3_backend.tf || true
+
+      - name: Terraform init, plan, apply (with S3 backend)
         working-directory: ./flask-app/infra
         run: |
           terraform init \
@@ -74,7 +78,7 @@ jobs:
           terraform apply -auto-approve
 
   deploy-flask:
-    name: Build and Deploy Flask App
+    name: Stage 3 – Build & Deploy Flask App
     runs-on: ubuntu-latest
     needs: terraform-main
 
