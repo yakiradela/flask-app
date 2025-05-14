@@ -11,8 +11,7 @@ env:
   DEPLOYMENT_NAME: flask-app
   CONTAINER_NAME: flask-app
   IMAGE_TAG: latest
-  BACKEND_BUCKET: terraform-state-bucketxyz123  # שם ה-bucket של ה-backend ב-S3
-  BACKEND_KEY: "terraform/terraform.tfstate"  # מיקום ה-state ב-S3
+  S3_BUCKET: terraform-state-bucketxyz123  # הוסף את שם ה־bucket שלך
 
 jobs:
   deploy:
@@ -33,7 +32,7 @@ jobs:
       uses: hashicorp/setup-terraform@v3
 
     - name: Terraform Init
-      run: terraform init -backend-config="bucket=${{ env.BACKEND_BUCKET }}" -backend-config="key=${{ env.BACKEND_KEY }}" -backend-config="region=${{ env.AWS_REGION }}"
+      run: terraform init -backend-config="bucket=${{ env.S3_BUCKET }}" -backend-config="key=terraform/terraform.tfstate" -backend-config="region=${{ env.AWS_REGION }}"
       working-directory: ./flask-app/infra
 
     - name: Terraform Apply
