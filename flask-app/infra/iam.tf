@@ -5,8 +5,8 @@ resource "aws_iam_policy" "yakir_admin_policy" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow",
-        Action = [
+        Effect   = "Allow"
+        Action   = [
           "ec2:Describe*",
           "ec2:Create*",
           "ec2:Delete*",
@@ -16,19 +16,19 @@ resource "aws_iam_policy" "yakir_admin_policy" {
           "ec2:AssociateAddress",
           "ec2:DisassociateAddress",
           "ec2:ReleaseAddress"
-        ],
+        ]
         Resource = "*"
       },
       {
-        Effect = "Allow",
-        Action = [
+        Effect   = "Allow"
+        Action   = [
           "eks:*"
-        ],
+        ]
         Resource = "*"
       },
       {
-        Effect = "Allow",
-        Action = [
+        Effect   = "Allow"
+        Action   = [
           "ecr:GetAuthorizationToken",
           "ecr:BatchCheckLayerAvailability",
           "ecr:PutImage",
@@ -36,24 +36,24 @@ resource "aws_iam_policy" "yakir_admin_policy" {
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
           "ecr:DescribeRepositories"
-        ],
+        ]
         Resource = "*"
       },
       {
-        Effect = "Allow",
-        Action = [
+        Effect   = "Allow"
+        Action   = [
           "s3:ListBucket",
           "s3:GetBucketVersioning",
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject",
           "s3:CreateBucket"
-        ],
+        ]
         Resource = "*"
       },
       {
-        Effect = "Allow",
-        Action = [
+        Effect   = "Allow"
+        Action   = [
           "iam:GetUser",
           "iam:GetRole",
           "iam:CreateRole",
@@ -64,8 +64,20 @@ resource "aws_iam_policy" "yakir_admin_policy" {
           "iam:ListAttachedRolePolicies",
           "iam:CreatePolicy",
           "iam:AttachUserPolicy"
-        ],
+        ]
         Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::terraform-state-bucketxyz123",
+          "arn:aws:s3:::terraform-state-bucketxyz123/*"
+        ]
       }
     ]
   })
@@ -74,42 +86,6 @@ resource "aws_iam_policy" "yakir_admin_policy" {
 resource "aws_iam_user_policy_attachment" "attach_yakir_admin_policy" {
   user       = "yakir"
   policy_arn = aws_iam_policy.yakir_admin_policy.arn
-}
-
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:ListBucket",
-                "s3:GetObject",
-                "s3:PutObject"
-            ],
-            "Resource": [
-                "arn:aws:s3:::terraform-state-bucketxyz123",
-                "arn:aws:s3:::terraform-state-bucketxyz123/*"
-            ]
-        }
-    ]
-}
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:ListBucket",
-                "s3:GetObject",
-                "s3:PutObject"
-            ],
-            "Resource": [
-                "arn:aws:s3:::terraform-state-bucketxyz123",
-                "arn:aws:s3:::terraform-state-bucketxyz123/*"
-            ],
-            "Principal": "*"
-        }
-    ]
 }
 
 
