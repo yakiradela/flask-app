@@ -1,5 +1,5 @@
 name: Build and Deploy Flask App to EKS
- 
+
 on:
   push:
     branches: [ main ]
@@ -11,6 +11,8 @@ env:
   DEPLOYMENT_NAME: flask-app
   CONTAINER_NAME: flask-app
   IMAGE_TAG: latest
+  BACKEND_BUCKET: terraform-state-bucketxyz123  # שם ה-bucket של ה-backend ב-S3
+  BACKEND_KEY: "terraform/terraform.tfstate"  # מיקום ה-state ב-S3
 
 jobs:
   deploy:
@@ -31,7 +33,7 @@ jobs:
       uses: hashicorp/setup-terraform@v3
 
     - name: Terraform Init
-      run: terraform init
+      run: terraform init -backend-config="bucket=${{ env.BACKEND_BUCKET }}" -backend-config="key=${{ env.BACKEND_KEY }}" -backend-config="region=${{ env.AWS_REGION }}"
       working-directory: ./flask-app/infra
 
     - name: Terraform Apply
@@ -58,3 +60,5 @@ jobs:
           --set image.repository=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY \
           --set image.tag=$IMAGE_TAG \
           --set service.type=LoadBalancer
+
+
