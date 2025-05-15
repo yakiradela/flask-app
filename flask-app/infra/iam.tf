@@ -126,4 +126,34 @@ resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+# יצירת מדיניות IAM עבור המשתמש כדי לאפשר לו יצירת משתמשים ומדיניות
+resource "aws_iam_policy" "admin_policy" {
+  name        = "admin-policy"
+  description = "Admin policy for creating IAM users and policies"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = [
+          "iam:CreateUser",
+          "iam:CreatePolicy",
+          "iam:AttachUserPolicy",
+          "iam:PutUserPolicy",
+          "iam:DeleteUser"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# חיבור מדיניות יצירת משתמשים ומדיניות למשתמש yakir
+resource "aws_iam_user_policy_attachment" "attach_admin_policy" {
+  user       = aws_iam_user.yakir.name
+  policy_arn = aws_iam_policy.admin_policy.arn
+}
+
+
 
