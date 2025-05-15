@@ -167,11 +167,6 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket_acl" "bucket_acl" {
-  bucket = aws_s3_bucket.terraform_state_bucket.id
-  acl    = "private"
-}
-
 
 resource "aws_s3_bucket_object_acl" "allow_terraform_state_access" {
   bucket = aws_s3_bucket.terraform_state_bucket.bucket
