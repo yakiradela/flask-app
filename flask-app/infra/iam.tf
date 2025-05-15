@@ -1,13 +1,11 @@
-###################################
-# Data source for existing user
-###################################
+##############################
+# IAM Policy for User: yakir
+##############################
+
 data "aws_iam_user" "yakir" {
   user_name = "yakir"
 }
 
-###################################
-# IAM Policy for yakir
-###################################
 resource "aws_iam_policy" "yakir_project_policy" {
   name        = "yakir-project-policy"
   description = "Policy to allow yakir to manage EKS, EC2, Node Groups, ECR, and S3 for Terraform"
@@ -15,8 +13,6 @@ resource "aws_iam_policy" "yakir_project_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-
-      # EKS Cluster & Node Groups
       {
         Effect = "Allow"
         Action = [
@@ -32,8 +28,6 @@ resource "aws_iam_policy" "yakir_project_policy" {
         ]
         Resource = "*"
       },
-
-      # EC2 for EKS Node Groups
       {
         Effect = "Allow"
         Action = [
@@ -47,8 +41,6 @@ resource "aws_iam_policy" "yakir_project_policy" {
         ]
         Resource = "*"
       },
-
-      # PassRole permissions
       {
         Effect = "Allow"
         Action = [
@@ -57,8 +49,6 @@ resource "aws_iam_policy" "yakir_project_policy" {
         ]
         Resource = "*"
       },
-
-      # ECR permissions
       {
         Effect = "Allow"
         Action = [
@@ -70,8 +60,6 @@ resource "aws_iam_policy" "yakir_project_policy" {
         ]
         Resource = "*"
       },
-
-      # S3 bucket access for Terraform state
       {
         Effect = "Allow"
         Action = [
@@ -92,25 +80,25 @@ resource "aws_iam_policy" "yakir_project_policy" {
   })
 }
 
-# Attach policy to yakir
 resource "aws_iam_user_policy_attachment" "attach_yakir_policy" {
   user       = data.aws_iam_user.yakir.user_name
   policy_arn = aws_iam_policy.yakir_project_policy.arn
 }
 
 ###################################
-# EKS Cluster Role
+# IAM Role for EKS Control Plane
 ###################################
+
 resource "aws_iam_role" "eks_cluster_role" {
   name = "eks-cluster-role"
 
   assume_role_policy = jsonencode({
-    Version = "2012-10-17",
+    Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow",
+      Effect = "Allow"
       Principal = {
         Service = "eks.amazonaws.com"
-      },
+      }
       Action = "sts:AssumeRole"
     }]
   })
@@ -122,18 +110,19 @@ resource "aws_iam_role_policy_attachment" "attach_eks_cluster_policy" {
 }
 
 ###################################
-# EKS Node Group Role
+# IAM Role for EKS Node Group
 ###################################
+
 resource "aws_iam_role" "eks_node_group_role" {
   name = "eks-node-group-role"
 
   assume_role_policy = jsonencode({
-    Version = "2012-10-17",
+    Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow",
+      Effect = "Allow"
       Principal = {
         Service = "ec2.amazonaws.com"
-      },
+      }
       Action = "sts:AssumeRole"
     }]
   })
@@ -154,9 +143,6 @@ resource "aws_iam_role_policy_attachment" "attach_ecr_read_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-###################################
-# Terraform S3 Policy (attached to Node Group if needed)
-###################################
 resource "aws_iam_policy" "terraform_s3_policy" {
   name        = "terraform-s3-policy"
   description = "Policy for accessing Terraform state bucket"
@@ -165,19 +151,19 @@ resource "aws_iam_policy" "terraform_s3_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow",
+        Effect = "Allow"
         Action = [
           "s3:ListBucket"
-        ],
+        ]
         Resource = "arn:aws:s3:::terraform-state-bucketxyz123"
       },
       {
-        Effect = "Allow",
+        Effect = "Allow"
         Action = [
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject"
-        ],
+        ]
         Resource = "arn:aws:s3:::terraform-state-bucketxyz123/*"
       }
     ]
