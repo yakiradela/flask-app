@@ -72,20 +72,22 @@ resource "aws_iam_policy" "yakir_project_policy" {
 
       # S3 – Terraform state storage
       {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          "arn:aws:s3:::terraform-state-bucketxyz123",
-          "arn:aws:s3:::terraform-state-bucketxyz123/*"
-        ]
-      }
-    ]
-  })
+  Effect = "Allow"
+  Action = [
+    "s3:ListBucket"
+  ]
+  Resource = "arn:aws:s3:::terraform-state-bucketxyz123"
+},
+{
+  Effect = "Allow"
+  Action = [
+    "s3:GetObject",
+    "s3:PutObject",
+    "s3:DeleteObject"
+  ]
+  Resource = "arn:aws:s3:::terraform-state-bucketxyz123/*"
 }
+
 
 # קישור המדיניות למשתמש yakir
 resource "aws_iam_user_policy_attachment" "attach_yakir_policy" {
