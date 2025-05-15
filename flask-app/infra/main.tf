@@ -92,7 +92,7 @@ resource "aws_eks_cluster" "main" {
   role_arn = aws_iam_role.eks_cluster_role.arn  # שם נכון
 
   vpc_config {
-    subnet_ids = [aws_subnet.subnet1.id, aws_subnet.subnet2.id]
+    subnet_ids = [for subnet in aws_subnet.public : subnet.id]  # עדכון כאן
   }
 
   depends_on = [
@@ -100,13 +100,12 @@ resource "aws_eks_cluster" "main" {
   ]
 }
 
-
 # ================= EKS Node Group =================
 resource "aws_eks_node_group" "node_group" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "flask-node-group"
   node_role_arn   = aws_iam_role.node_group_role.arn
-  subnet_ids      = aws_subnet.private[*].id
+  subnet_ids      = [for subnet in aws_subnet.private : subnet.id]  # עדכון כאן
 
   scaling_config {
     desired_size = var.node_group_desired_size
