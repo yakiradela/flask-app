@@ -15,6 +15,7 @@ resource "aws_iam_policy" "yakir_project_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
+
       # EKS Cluster & Node Groups
       {
         Effect = "Allow"
@@ -151,7 +152,10 @@ resource "aws_iam_role_policy_attachment" "attach_ecr_read_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-# מדיניות S3 נוספת (אם היא נדרשת במידת הצורך, יכולה להיות נפרדת או להיכלל בתוך מדיניות אחת)
+###################################
+# IAM Policy for Terraform S3 State
+###################################
+
 resource "aws_iam_policy" "terraform_s3_policy" {
   name        = "terraform-s3-policy"
   description = "Policy for accessing Terraform state bucket"
@@ -162,14 +166,14 @@ resource "aws_iam_policy" "terraform_s3_policy" {
       {
         Effect = "Allow"
         Action = [
-          "s3:ListBucket",
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject"
+          "s3:ListBucket",      # הרשאה לרשום את האובייקטים בדלי
+          "s3:GetObject",       # הרשאה לקרוא אובייקטים בדלי
+          "s3:PutObject",       # הרשאה להעלות אובייקטים לדלי
+          "s3:DeleteObject"     # הרשאה למחוק אובייקטים (אם נדרש)
         ]
         Resource = [
-          "arn:aws:s3:::terraform-state-bucketxyz123",
-          "arn:aws:s3:::terraform-state-bucketxyz123/*"
+          "arn:aws:s3:::terraform-state-bucketxyz123",       # גישה לדלי עצמו
+          "arn:aws:s3:::terraform-state-bucketxyz123/*"      # גישה לאובייקטים בתוך הדלי
         ]
       }
     ]
@@ -181,3 +185,4 @@ resource "aws_iam_role_policy_attachment" "attach_terraform_s3_policy" {
   role       = aws_iam_role.eks_node_group_role.name
   policy_arn = aws_iam_policy.terraform_s3_policy.arn
 }
+
