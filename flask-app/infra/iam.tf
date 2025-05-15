@@ -152,7 +152,10 @@ resource "aws_iam_role_policy_attachment" "attach_ecr_read_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-# מדיניות S3 נוספת (אם היא נדרשת במידת הצורך, יכולה להיות נפרדת או להיכלל בתוך מדיניות אחת)
+###################################
+# IAM Policy for S3 Access (if needed)
+###################################
+
 resource "aws_iam_policy" "terraform_s3_policy" {
   name        = "terraform-s3-policy"
   description = "Policy for accessing Terraform state bucket"
@@ -182,7 +185,5 @@ resource "aws_iam_role_policy_attachment" "attach_terraform_s3_policy" {
   role       = aws_iam_role.eks_node_group_role.name
   policy_arn = aws_iam_policy.terraform_s3_policy.arn
 }
-
-
 
 
