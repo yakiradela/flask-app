@@ -71,7 +71,7 @@ resource "aws_iam_policy" "yakir_project_policy" {
       },
 
       # S3 – Terraform state storage
-      {
+{
   Effect = "Allow"
   Action = [
     "s3:ListBucket"
