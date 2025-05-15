@@ -88,17 +88,18 @@ resource "aws_route_table_association" "private_assoc" {
 
 # ================= EKS Cluster =================
 resource "aws_eks_cluster" "main" {
-  name     = "devops-cluster"
-  role_arn = aws_iam_role.eks_role.arn
+  name     = "my-eks-cluster"
+  role_arn = aws_iam_role.eks_cluster_role.arn  # שם נכון
 
   vpc_config {
-    subnet_ids = aws_subnet.private[*].id
+    subnet_ids = [aws_subnet.subnet1.id, aws_subnet.subnet2.id]
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.eks_policy
+    aws_iam_role_policy_attachment.attach_eks_cluster_policy  # שם נכון
   ]
 }
+
 
 # ================= EKS Node Group =================
 resource "aws_eks_node_group" "node_group" {
