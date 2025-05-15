@@ -100,13 +100,50 @@ resource "aws_iam_access_key" "yakir_access_key" {
   user = aws_iam_user.yakir.name
 }
 
-# אפשרות לאחסן את ה-Access Key בצורה מאובטחת אם צריך
-output "yakir_access_key_id" {
-  value = aws_iam_access_key.yakir_access_key.id
+# יצירת תפקיד IAM עבור EKS Cluster
+resource "aws_iam_role" "eks_role" {
+  name               = "eks-cluster-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action    = "sts:AssumeRole"
+        Effect    = "Allow"
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
+      }
+    ]
+  })
 }
 
-output "yakir_secret_access_key" {
-  value     = aws_iam_access_key.yakir_access_key.secret
-  sensitive = true
+# יצירת תפקיד IAM עבור Node Group ב-EKS
+resource "aws_iam_role" "node_group_role" {
+  name               = "eks-node-group-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action    = "sts:AssumeRole"
+        Effect    = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
 }
+
+# יצירת חיבור מדיניות IAM לתפקיד ה-EKS Cluster Role
+resource "aws_iam_role_policy_attachment" "eks_policy" {
+  role       = aws_iam_role.eks_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
+
+# יצירת חיבור מדיניות IAM לתפקיד ה-Node Group Role
+resource "aws_iam_role_policy_attachment" "node_group_policy" {
+  role       = aws_iam_role.node_group_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+}
+
 
