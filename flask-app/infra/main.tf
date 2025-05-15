@@ -117,7 +117,7 @@ resource "aws_eks_node_group" "node_group" {
 
   depends_on = [
     aws_eks_cluster.main,
-    aws_iam_role_policy_attachment.node_group_worker_node_policy,
+    aws_iam_role_policy_attachment.node_group_policy,
     aws_iam_role_policy_attachment.node_group_cni_policy,
     aws_iam_role_policy_attachment.node_group_registry_policy
   ]
