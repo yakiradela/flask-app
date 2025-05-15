@@ -1,3 +1,38 @@
+# יצירת מדיניות IAM למנהל מלא (אם לא קיימת)
+resource "aws_iam_policy" "admin_full_policy" {
+  name        = "AdministratorFullAccess"
+  description = "Admin access policy for IAM actions"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "iam:*"
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = "ec2:*"
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = "s3:*"
+        Resource = "*"
+      }
+      # הוספת פעולות נוספות לפי הצורך
+    ]
+  })
+}
+
+# הוספת מדיניות למשתמש 'yakir' (לאחר יצירת משתמש בעל הרשאות מספיקות)
+resource "aws_iam_user_policy_attachment" "admin_access" {
+  user       = aws_iam_user.yakir.name
+  policy_arn = aws_iam_policy.admin_full_policy.arn
+}
+
+
 # יצירת מדיניות IAM עם כל ההרשאות הנדרשות
 resource "aws_iam_policy" "yakir_admin_policy" {
   name        = "yakir-admin-policy"
