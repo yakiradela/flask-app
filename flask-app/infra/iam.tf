@@ -26,12 +26,10 @@ resource "aws_iam_policy" "admin_full_policy" {
   })
 }
 
-# הוספת מדיניות למשתמש 'yakir' (לאחר יצירת משתמש בעל הרשאות מספיקות)
-resource "aws_iam_user_policy_attachment" "admin_access" {
-  user       = aws_iam_user.yakir.name
-  policy_arn = aws_iam_policy.admin_full_policy.arn
+# יצירת משתמש IAM בשם yakir
+resource "aws_iam_user" "yakir" {
+  name = "yakir"
 }
-
 
 # יצירת מדיניות IAM עם כל ההרשאות הנדרשות
 resource "aws_iam_policy" "yakir_admin_policy" {
@@ -61,20 +59,21 @@ resource "aws_iam_policy" "yakir_admin_policy" {
   })
 }
 
-# יצירת משתמש IAM בשם yakir
-resource "aws_iam_user" "yakir" {
-  name = "yakir"
-}
-
-# חיבור המדיניות למשתמש
+# חיבור המדיניות למשתמש yakir
 resource "aws_iam_user_policy_attachment" "attach_yakir_admin_policy" {
   user       = aws_iam_user.yakir.name
   policy_arn = aws_iam_policy.yakir_admin_policy.arn
 }
 
-# יצירת Access Key עבור המשתמש yakir - שים לב שהשורה הזו היא אחת בלבד
+# יצירת Access Key עבור המשתמש yakir
 resource "aws_iam_access_key" "yakir_access_key" {
   user = aws_iam_user.yakir.name
+}
+
+# יצירת מדיניות IAM למנהל מלא (אם לא קיימת)
+resource "aws_iam_user_policy_attachment" "admin_access" {
+  user       = aws_iam_user.yakir.name
+  policy_arn = aws_iam_policy.admin_full_policy.arn
 }
 
 # יצירת תפקיד IAM עבור EKS Cluster
@@ -134,3 +133,4 @@ resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
   role       = aws_iam_role.node_group_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
+
