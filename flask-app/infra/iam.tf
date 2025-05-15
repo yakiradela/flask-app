@@ -1,6 +1,3 @@
-provider "aws" {
-  region = "us-east-2"
-}
 
 # שליפת המשתמש הקיים yakir
 data "aws_iam_user" "yakir" {
