@@ -1,138 +1,51 @@
-# ========== IAM ROLE FOR EKS CLUSTER ==========
-
-resource "aws_iam_role" "eks_role" {
-  name = "eks-cluster-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect = "Allow",
-      Principal = {
-        Service = "eks.amazonaws.com"
-      },
-      Action = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "eks_policy" {
-  role       = aws_iam_role.eks_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
-
-# ========== IAM ROLE FOR EKS NODE GROUP ==========
-
-resource "aws_iam_role" "node_group_role" {
-  name = "eks-node-group-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect = "Allow",
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      },
-      Action = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_worker_node_policy" {
-  role       = aws_iam_role.node_group_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_cni_policy" {
-  role       = aws_iam_role.node_group_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
-  role       = aws_iam_role.node_group_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-
-# ========== IAM POLICY FOR S3 STATE ACCESS ==========
-
-resource "aws_iam_policy" "terraform_s3_access_policy" {
-  name        = "terraform-s3-access-policy"
-  description = "Policy to allow Terraform access to S3 state files"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect   = "Allow",
-      Action   = [
-        "s3:ListBucket",
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:GetBucketVersioning"
-      ],
-      Resource = [
-        "arn:aws:s3:::terraform-state-bucketxyz123",
-        "arn:aws:s3:::terraform-state-bucketxyz123/*"
-      ]
-    }]
-  })
-}
-
-# ========== IAM USER ==========
-
-resource "aws_iam_user" "yakir" {
-  name = "yakir"
-}
-
-# ========== ATTACH POLICIES TO USER ==========
-
-resource "aws_iam_user_policy_attachment" "terraform_s3_policy_attachment" {
-  user       = aws_iam_user.yakir.name
-  policy_arn = aws_iam_policy.terraform_s3_access_policy.arn
-}
-
-# ========== ADMIN ACCESS POLICY FOR USER ==========
-
+# יצירת מדיניות IAM עם כל ההרשאות הנדרשות
 resource "aws_iam_policy" "yakir_admin_policy" {
   name        = "yakir-admin-policy"
   description = "Policy for yakir to access AWS resources used by Terraform"
 
   policy = jsonencode({
-    Version = "2012-10-17",
+    Version = "2012-10-17"
     Statement = [
-      # EC2
+      # הרשאות EC2
       {
-        Effect = "Allow",
-        Action = [
-          "ec2:Describe*",
-          "ec2:Create*",
-          "ec2:Delete*",
-          "ec2:Attach*",
-          "ec2:Detach*",
-          "ec2:AllocateAddress",
-          "ec2:AssociateAddress",
-          "ec2:DisassociateAddress",
-          "ec2:ReleaseAddress",
+        Action   = [
           "ec2:DescribeSecurityGroups",
           "ec2:DescribeVpcs",
-          "ec2:DescribeAddresses"
-        ],
+          "ec2:DescribeAddresses",
+          "ec2:DescribeInstances",
+          "ec2:DescribeKeyPairs",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeNetworkInterfaces"
+        ]
+        Effect   = "Allow"
         Resource = "*"
       },
-      # EKS
+      # הרשאות EKS
       {
-        Effect = "Allow",
-        Action = [
-          "eks:DescribeNodegroup",
+        Action   = [
           "eks:DescribeCluster",
+          "eks:DescribeNodegroup",
           "eks:ListClusters",
           "eks:CreateNodegroup"
-        ],
+        ]
+        Effect   = "Allow"
         Resource = "*"
       },
-      # ECR
+      # הרשאות S3
       {
-        Effect = "Allow",
-        Action = [
+        Action   = [
+          "s3:GetBucketVersioning",
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      # הרשאות ECR
+      {
+        Action   = [
           "ecr:DescribeRepositories",
           "ecr:GetAuthorizationToken",
           "ecr:BatchCheckLayerAvailability",
@@ -140,26 +53,13 @@ resource "aws_iam_policy" "yakir_admin_policy" {
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload"
-        ],
+        ]
+        Effect   = "Allow"
         Resource = "*"
       },
-      # S3
+      # הרשאות IAM
       {
-        Effect = "Allow",
-        Action = [
-          "s3:*",
-          "s3:GetBucketVersioning",
-          "s3:ListBucket",
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject"
-        ],
-        Resource = "*"
-      },
-      # IAM
-      {
-        Effect = "Allow",
-        Action = [
+        Action   = [
           "iam:GetUser",
           "iam:GetRole",
           "iam:CreateRole",
@@ -170,23 +70,43 @@ resource "aws_iam_policy" "yakir_admin_policy" {
           "iam:ListAttachedRolePolicies",
           "iam:CreatePolicy",
           "iam:AttachUserPolicy"
-        ],
+        ]
+        Effect   = "Allow"
         Resource = "*"
       },
-      # CloudWatch Logs
+      # הרשאות CloudWatch Logs
       {
-        Effect = "Allow",
-        Action = [
-          "logs:*"
-        ],
+        Action   = ["logs:*"]
+        Effect   = "Allow"
         Resource = "*"
       }
     ]
   })
 }
 
+# יצירת משתמש IAM בשם yakir
+resource "aws_iam_user" "yakir" {
+  name = "yakir"
+}
+
+# חיבור המדיניות למשתמש
 resource "aws_iam_user_policy_attachment" "attach_yakir_admin_policy" {
   user       = aws_iam_user.yakir.name
   policy_arn = aws_iam_policy.yakir_admin_policy.arn
+}
+
+# יצירת את ה-Access Key עבור המשתמש yakir
+resource "aws_iam_access_key" "yakir_access_key" {
+  user = aws_iam_user.yakir.name
+}
+
+# אפשרות לאחסן את ה-Access Key בצורה מאובטחת אם צריך
+output "yakir_access_key_id" {
+  value = aws_iam_access_key.yakir_access_key.id
+}
+
+output "yakir_secret_access_key" {
+  value     = aws_iam_access_key.yakir_access_key.secret
+  sensitive = true
 }
 
