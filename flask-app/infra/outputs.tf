@@ -11,11 +11,11 @@ output "ecr_repository_url" {
 }
 
 output "iam_role_arn" {
-  value = aws_iam_role.eks_role.arn
+  value = aws_iam_role.eks_cluster_role.arn
 }
 
 output "node_group_role_arn" {
-  value = aws_iam_role.node_group_role.arn
+  value = aws_iam_role.eks_node_group_role.arn
 }
 
 output "vpc_id" {
