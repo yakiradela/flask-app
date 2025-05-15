@@ -45,6 +45,7 @@ jobs:
                           -target=aws_iam_policy.yakir_admin_policy \
                           -target=aws_iam_user_policy_attachment.attach_yakir_admin_policy \
                           -target=aws_iam_access_key.yakir_access_key
+                          -auto-approve
 
   terraform-main:
     name: Stage 2 – Deploy Infra with S3 backend
