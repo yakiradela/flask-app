@@ -125,3 +125,13 @@ resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
   role       = aws_iam_role.node_group_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
+
+# יצירת Bucket S3 עבור מצב Terraform
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "terraform-state-bucketxyz123"
+  acl    = "private"
+  tags = {
+    Name = "TerraformState"
+  }
+}
+
