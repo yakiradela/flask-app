@@ -168,12 +168,6 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
 }
 
 
-resource "aws_s3_bucket_object_acl" "allow_terraform_state_access" {
-  bucket = aws_s3_bucket.terraform_state_bucket.bucket
-  key    = "terraform/terraform.tfstate"
-  acl    = "private"
-}
-
 resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
   bucket = aws_s3_bucket.terraform_state_bucket.bucket
 
