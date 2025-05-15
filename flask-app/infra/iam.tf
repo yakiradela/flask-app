@@ -1,8 +1,3 @@
-resource "aws_iam_user_policy_attachment" "admin_access" {
-  user       = aws_iam_user.yakir.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
-
 # יצירת מדיניות IAM עם כל ההרשאות הנדרשות
 resource "aws_iam_policy" "yakir_admin_policy" {
   name        = "yakir-admin-policy"
@@ -42,7 +37,7 @@ resource "aws_iam_user_policy_attachment" "attach_yakir_admin_policy" {
   policy_arn = aws_iam_policy.yakir_admin_policy.arn
 }
 
-# יצירת Access Key עבור המשתמש yakir
+# יצירת Access Key עבור המשתמש yakir - שים לב שהשורה הזו היא אחת בלבד
 resource "aws_iam_access_key" "yakir_access_key" {
   user = aws_iam_user.yakir.name
 }
@@ -103,9 +98,4 @@ resource "aws_iam_role_policy_attachment" "node_group_cni_policy" {
 resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
   role       = aws_iam_role.node_group_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-
-# יצירת Access Key עבור המשתמש yakir
-resource "aws_iam_access_key" "yakir_access_key" {
-  user = aws_iam_user.yakir.name
 }
