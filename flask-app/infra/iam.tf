@@ -156,3 +156,69 @@ resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
 
+resource "aws_iam_policy" "yakir_admin_policy" {
+  name        = "yakir-admin-policy"
+  description = "Full permissions for yakir to manage AWS infrastructure using Terraform"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # EC2
+      {
+        Effect   = "Allow"
+        Action   = [
+          "ec2:*"
+        ]
+        Resource = "*"
+      },
+      # S3
+      {
+        Effect   = "Allow"
+        Action   = [
+          "s3:*"
+        ]
+        Resource = "*"
+      },
+      # IAM
+      {
+        Effect   = "Allow"
+        Action   = [
+          "iam:*"
+        ]
+        Resource = "*"
+      },
+      # EKS
+      {
+        Effect   = "Allow"
+        Action   = [
+          "eks:*"
+        ]
+        Resource = "*"
+      },
+      # ECR
+      {
+        Effect   = "Allow"
+        Action   = [
+          "ecr:*"
+        ]
+        Resource = "*"
+      },
+      # CloudWatch Logs
+      {
+        Effect   = "Allow"
+        Action   = [
+          "logs:*"
+        ]
+        Resource = "*"
+      },
+      # STS (עבור AssumeRole)
+      {
+        Effect   = "Allow"
+        Action   = [
+          "sts:AssumeRole"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
