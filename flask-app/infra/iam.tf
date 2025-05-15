@@ -52,45 +52,13 @@ resource "aws_iam_role_policy_attachment" "node_group_registry_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-# ========== IAM POLICY FOR S3 STATE ACCESS ==========
-
-resource "aws_iam_policy" "terraform_s3_access_policy" {
-  name        = "terraform-s3-access-policy"
-  description = "Policy to allow Terraform access to S3 state files"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect   = "Allow",
-      Action   = [
-        "s3:ListBucket",
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:GetBucketVersioning"
-      ],
-      Resource = [
-        "arn:aws:s3:::terraform-state-bucketxyz123",
-        "arn:aws:s3:::terraform-state-bucketxyz123/*"
-      ]
-    }]
-  })
-}
-
 # ========== IAM USER ==========
 
 resource "aws_iam_user" "yakir" {
   name = "yakir"
 }
 
-# ========== ATTACH POLICIES TO USER ==========
-
-resource "aws_iam_user_policy_attachment" "terraform_s3_policy_attachment" {
-  user       = aws_iam_user.yakir.name
-  policy_arn = aws_iam_policy.terraform_s3_access_policy.arn
-}
-
-# ========== ADMIN ACCESS POLICY FOR USER ==========
+# ========== ADMIN-LIKE POLICY FOR USER ==========
 
 resource "aws_iam_policy" "yakir_admin_policy" {
   name        = "yakir-admin-policy"
@@ -99,52 +67,49 @@ resource "aws_iam_policy" "yakir_admin_policy" {
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
+      # EC2
       {
         Effect = "Allow",
         Action = [
-          "ec2:Describe*",
-          "ec2:Create*",
-          "ec2:Delete*",
-          "ec2:Attach*",
-          "ec2:Detach*",
-          "ec2:AllocateAddress",
-          "ec2:AssociateAddress",
-          "ec2:DisassociateAddress",
-          "ec2:ReleaseAddress"
+          "ec2:*"
         ],
         Resource = "*"
       },
+      # EKS
       {
         Effect = "Allow",
         Action = ["eks:*"],
         Resource = "*"
       },
+      # ECR
       {
         Effect = "Allow",
         Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:PutImage",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload",
-          "ecr:DescribeRepositories"
+          "ecr:*"
         ],
         Resource = "*"
       },
+      # S3
       {
         Effect = "Allow",
         Action = [
-          "iam:GetUser",
-          "iam:GetRole",
-          "iam:CreateRole",
-          "iam:PassRole",
-          "iam:AttachRolePolicy",
-          "iam:PutRolePolicy",
-          "iam:ListRoles",
-          "iam:ListAttachedRolePolicies",
-          "iam:CreatePolicy",
-          "iam:AttachUserPolicy"
+          "s3:*"
+        ],
+        Resource = "*"
+      },
+      # IAM
+      {
+        Effect = "Allow",
+        Action = [
+          "iam:*"
+        ],
+        Resource = "*"
+      },
+      # CloudWatch Logs
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:*"
         ],
         Resource = "*"
       }
@@ -152,8 +117,9 @@ resource "aws_iam_policy" "yakir_admin_policy" {
   })
 }
 
+# ========== ATTACH POLICY TO USER ==========
+
 resource "aws_iam_user_policy_attachment" "attach_yakir_admin_policy" {
   user       = aws_iam_user.yakir.name
   policy_arn = aws_iam_policy.yakir_admin_policy.arn
 }
-
